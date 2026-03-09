@@ -27,8 +27,7 @@ $$R = \frac{f_b \cdot c \cdot T_{sweep}}{2 \cdot B}$$
 Raw signals are digitized and processed through a Fast Fourier Transform (FFT). Due to the $1.5\text{m}$ range resolution limit ($\Delta R = c/2B$), raw measurements appear as discrete "staircase" steps.
 
 ### 3. Target Tracking (The Estimation)
-A Kalman Filter is used to maintain a state vector $x = [p, v]^T$. It utilizes a transition matrix $A$ to predict motion between chirps:
-$$A = \begin{pmatrix} 1 & \Delta t \\ 0 & 1 \end{pmatrix}$$
+A Kalman Filter is used to maintain a state vector $x = [p, v]^T$. It utilizes a transition matrix $A$ to predict motion between chirps.
 The filter effectively "smooths" the quantized measurements and provides a continuous track of the target's true path.
 
 ---
