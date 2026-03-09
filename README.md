@@ -31,7 +31,13 @@ A Kalman Filter is used to maintain a state vector $x = [p, v]^T$. It utilizes a
 The filter effectively "smooths" the quantized measurements and provides a continuous track of the target's true path.
 
 ---
+## Software Requirements
+To run this simulation, you will need **MATLAB (R2021a or later)** with the following toolboxes installed:
 
+* **Radar Toolbox:** Required for FMCW waveform generation and radar transceiver objects.
+* **Signal Processing Toolbox:** Required for the `findpeaks` and `fft` functions.
+
+> **Note:** If you do not have the Radar Toolbox, the core signal processing and Kalman filtering logic can still be executed using base MATLAB and the Signal Processing Toolbox.
 ## Results
 
 Below is the visualization of a target moving at high velocity.
