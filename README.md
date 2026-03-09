@@ -2,9 +2,9 @@
 ### An End-to-End Simulation: From LFM Chirps to Kalman State Estimation
 
 ## Overview
-This project implements a full-stack **FMCW (Frequency-Modulated Continuous Wave) Radar** processing pipeline in MATLAB. It bridges the gap between raw RF physics and high-level target tracking. 
+This project implements a full-stack FMCW (Frequency-Modulated Continuous Wave) Radar processing pipeline in MATLAB. It bridges the gap between raw RF physics and high-level target tracking. 
 
-The simulation generates 77GHz radar signals, processes them to identify targets amidst noise and "ghost" reflections, and utilizes a **2nd-order Kalman Filter** to provide smooth, sub-resolution trajectory estimation.
+The simulation generates 77GHz radar signals, processes them to identify targets amidst noise and "ghost" reflections, and utilizes a 2nd-order Kalman Filter to provide smooth, sub-resolution trajectory estimation.
 
 ## Key Features
 - **Radar Physics Simulation:** Generation of Linear Frequency Modulated (LFM) chirps and beat signal mixing.
