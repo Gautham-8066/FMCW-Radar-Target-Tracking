@@ -1,12 +1,12 @@
 # FMCW Radar Target Tracking & Ghost Mitigation
 ### An End-to-End Simulation: From LFM Chirps to Kalman State Estimation
 
-## 📌 Overview
+## Overview
 This project implements a full-stack **FMCW (Frequency-Modulated Continuous Wave) Radar** processing pipeline in MATLAB. It bridges the gap between raw RF physics and high-level target tracking. 
 
 The simulation generates 77GHz radar signals, processes them to identify targets amidst noise and "ghost" reflections, and utilizes a **2nd-order Kalman Filter** to provide smooth, sub-resolution trajectory estimation.
 
-## 🚀 Key Features
+## Key Features
 - **Radar Physics Simulation:** Generation of Linear Frequency Modulated (LFM) chirps and beat signal mixing.
 - **Digital Signal Processing:** Real-time FFT-based range extraction and peak detection.
 - **Ghost Mitigation:** Gating logic to distinguish moving targets from static environment reflections (simulated "ghosts").
@@ -15,7 +15,7 @@ The simulation generates 77GHz radar signals, processes them to identify targets
 
 ---
 
-## 📡 The Pipeline Architecture
+## The Pipeline Architecture
 
 ### 1. Signal Generation (The Physics)
 The system simulates a 77GHz carrier with a 100MHz bandwidth. The beat frequency $f_b$ is derived by mixing the transmitted and received signals:
@@ -33,7 +33,7 @@ The filter effectively "smooths" the quantized measurements and provides a conti
 
 ---
 
-## 📊 Results
+## Results
 
 Below is the visualization of a target moving at high velocity.
 
