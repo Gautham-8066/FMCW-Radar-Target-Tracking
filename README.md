@@ -32,7 +32,7 @@ The filter effectively "smooths" the quantized measurements and provides a conti
 
 ---
 ## Software Requirements
-To run this simulation, you will need **MATLAB (R2021a or later)** with the following toolboxes installed:
+I ran this simulation in **MATLAB R2025b** with the following toolboxes installed:
 
 * **Radar Toolbox:** Required for FMCW waveform generation and radar transceiver objects.
 * **Signal Processing Toolbox:** Required for the `findpeaks` and `fft` functions.
