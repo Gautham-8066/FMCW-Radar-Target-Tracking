@@ -28,7 +28,7 @@ Raw signals are digitized and processed through a Fast Fourier Transform (FFT). 
 
 ### 3. Target Tracking (The Estimation)
 A Kalman Filter is used to maintain a state vector $x = [p, v]^T$. It utilizes a transition matrix $A$ to predict motion between chirps:
-$$A = \begin{bmatrix} 1 & \Delta t \\ 0 & 1 \end{bmatrix}$$
+$$A = \begin{pmatrix} 1 & \Delta t \\ 0 & 1 \end{pmatrix}$$
 The filter effectively "smooths" the quantized measurements and provides a continuous track of the target's true path.
 
 ---
