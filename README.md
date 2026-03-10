@@ -27,7 +27,7 @@ Raw signals are digitized and processed through a Fast Fourier Transform (FFT). 
 The core "brain" of the project uses a 2nd-order Discrete Kalman Filter. It maintains a state vector $x = [p, v]^T$ and uses a constant velocity transition matrix.
 
 Smart Gating Logic: The tracker predicts the target's next location. If multiple detections appear (e.g., a real target and a static ghost), the filter associates the data point closest to its prediction, successfully ignoring environmental noise.
----
+
 ## Software Requirements
 I ran this simulation in **MATLAB R2025b** with the following toolboxes installed:
 
