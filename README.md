@@ -2,34 +2,31 @@
 ### An End-to-End Simulation: From LFM Chirps to Kalman State Estimation
 
 ## Overview
-This project implements a full-stack FMCW (Frequency-Modulated Continuous Wave) Radar processing pipeline in MATLAB. It bridges the gap between raw RF physics and high-level target tracking. 
+This project implements a complete End-to-End Radar Signal Processing Pipeline in MATLAB. It bridges the gap between raw RF physics and high-level autonomous "vision." By simulating the physics of 77GHz FMCW chirps, the system employs a Kalman Filter to track both Position and Velocity in real-time. 
 
 The simulation generates 77GHz radar signals, processes them to identify targets amidst noise and "ghost" reflections, and utilizes a 2nd-order Kalman Filter to provide smooth, sub-resolution trajectory estimation.
 
-## Key Features
-- **Radar Physics Simulation:** Generation of Linear Frequency Modulated (LFM) chirps and beat signal mixing.
-- **Digital Signal Processing:** Real-time FFT-based range extraction and peak detection.
-- **Ghost Mitigation:** Gating logic to distinguish moving targets from static environment reflections (simulated "ghosts").
-- **State Estimation:** Discrete-time Kalman Filter (Constant Velocity model) to handle measurement quantization and noise.
-- **Hardware-Aware Design:** Parameters optimized for 77GHz automotive/industrial radar standards.
+The system is specifically designed to handle common radar challenges:
+* **Quantization Noise:** Overcoming the 1.5m range resolution limit using recursive estimation.
+* **Ghost Mitigation:** Identifying and ignoring static reflections (ghosts) using predictive **Gating Logic**.
+* **State Learning:** Monitoring the filter as it "converges" to the true velocity of a high-speed target.
 
 ---
 
 ## The Pipeline Architecture
 
 ### 1. Signal Generation (The Physics)
-The system simulates a 77GHz carrier with a 100MHz bandwidth. The beat frequency $f_b$ is derived by mixing the transmitted and received signals:
-$$R = \frac{f_b \cdot c \cdot T_{sweep}}{2 \cdot B}$$
+The system models a 77GHz LFM (Linear Frequency Modulation) chirp. By mixing the transmitted signal with the reflected return (heterodyning), we derive the **Beat Frequency ($f_b$)**.
 
 
 
 ### 2. Range Extraction (The DSP)
 Raw signals are digitized and processed through a Fast Fourier Transform (FFT). Due to the $1.5\text{m}$ range resolution limit ($\Delta R = c/2B$), raw measurements appear as discrete "staircase" steps.
 
-### 3. Target Tracking (The Estimation)
-A Kalman Filter is used to maintain a state vector $x = [p, v]^T$. It utilizes a transition matrix $A$ to predict motion between chirps.
-The filter effectively "smooths" the quantized measurements and provides a continuous track of the target's true path.
+### 3. Intelligent Tracking (The Kalman Filter)
+The core "brain" of the project uses a 2nd-order Discrete Kalman Filter. It maintains a state vector $x = [p, v]^T$ and uses a constant velocity transition matrix.
 
+Smart Gating Logic: The tracker predicts the target's next location. If multiple detections appear (e.g., a real target and a static ghost), the filter associates the data point closest to its prediction, successfully ignoring environmental noise.
 ---
 ## Software Requirements
 I ran this simulation in **MATLAB R2025b** with the following toolboxes installed:
@@ -37,17 +34,18 @@ I ran this simulation in **MATLAB R2025b** with the following toolboxes installe
 * **Radar Toolbox:** Required for FMCW waveform generation and radar transceiver objects.
 * **Signal Processing Toolbox:** Required for the `findpeaks` and `fft` functions.
 
-> **Note:** If you do not have the Radar Toolbox, the core signal processing and Kalman filtering logic can still be executed using base MATLAB and the Signal Processing Toolbox.
-## Results
-
-Below is the visualization of a target moving at high velocity.
-
-<img width="1055" height="671" alt="image" src="https://github.com/user-attachments/assets/a3e7483b-bbbe-4cac-8c3f-fb7ba1a4ba67" />
+> Note: If you do not have the Radar Toolbox, the core signal processing and Kalman filtering logic can still be executed using base MATLAB and the Signal Processing Toolbox.
+## Live System Results
+Below is the real-time output of the system tracking a target moving at **1500 m/s**:
 
 
-**Analysis:**
-- **Green Line:** True target trajectory.
-- **Red Xs:** Raw radar measurements showing **Range Bin Quantization**.
-- **Blue Dashed Line:** Kalman Filter output, successfully filtering noise and providing a predictive estimate of the object's position.
 
+https://github.com/user-attachments/assets/11d30f3a-1b6f-4472-bae8-81dacf3a57d8
+
+
+
+### Analysis of the Dashboard:
+* Signal Domain: Shows raw FFT peaks. Note the static "Ghost" peak at 50m which is successfully ignored.
+* Spatial Domain: The Yellow Dashed Line (Kalman) provides a smooth path, cutting through the noisy Red Xs(Raw Data).
+* State Estimation: The bottom plot shows the filter "learning" and locking onto the target's true velocity despite starting from a default guess.
 ---
