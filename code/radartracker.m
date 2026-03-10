@@ -1,93 +1,118 @@
-%% FMCW Radar + Kalman Tracker
+%% FMCW Radar + Kalman Tracker (Live Analysis)
 clear; clc; close all;
 
-% 1. Radar & Simulation Setup 
+% 1. Radar & Simulation Setup
 fc = 77e9;          % 77 GHz
 c = 3e8;            
-res = 1;            % 1m resolution
-bw = c/(2*res);     % Bandwidth
+res = 1.5;          % Range resolution (~1.5m)
+bw = c/(2*res);     % Bandwidth (100MHz)
 range_max = 200;
 t_sweep = 5.5 * 2 * range_max/c; 
 slope = bw/t_sweep;
-fs = 150e6;         % Sampling rate
+fs = 150e6;         
 t = linspace(0, t_sweep, t_sweep*fs);
-num_chirps = 200;    
-v1 = 3000;           
-r_start = 100;       % Starting distance
 
-%2. Kalman Filter Initialization
-dt = t_sweep;       % Time step
-% State Vector: [Position; Velocity]
+% SIMULATION PARAMETERS
+num_chirps = 150;   
+v1 = 1500;           % Velocity (m/s)
+r_start = 80;       % Starting distance (m)
+
+% 2. Kalman Filter Initialization
+dt = t_sweep;       
 A = [1 dt; 0 1];    % Transition Matrix
-H = [1 0];          % Measurement Matrix 
-Q = [0.1 0; 0 0.01];% Process Noise
-R_cov = 1.5;        % Measurement Noise Covariance
-P = eye(2);         % Initial Error Covariance
-x_est = [100; 20];  % Initial Guess [Pos; Vel]
+H = [1 0];          % Measurement Matrix
+Q = [0.05 0; 0 0.005]; % Process Noise
+R_cov = 2.5;        % Increased Measurement Noise for visual effect
+P = eye(2);         
+x_est = [r_start; v1]; 
 
-% Storage for plotting
+% Storage
 kalman_pos = zeros(1, num_chirps);
+kalman_vel = zeros(1, num_chirps);
 measured_pos = zeros(1, num_chirps);
 true_pos = zeros(1, num_chirps);
 
-% 3. The Tracking Loop
-fprintf('Starting Tracking Loop...\n');
+% Setup Figure
+h_fig = figure('Color', 'k', 'Name', 'Radar Intelligence System');
+
+% 3. The Tracking Loop 
 for k = 1:num_chirps
-    % Update Real Target Range (True Position)
-    r_true = r_start + v1 * (k * dt);
+    % 3a. Update True Physics
+    r_true = r_start + v1 * (k * dt); 
     true_pos(k) = r_true;
     
-    % --- Signal Generation (Simulating Radar Physics) ---
+    % 3b. Signal Generation
     tau = 2 * r_true / c;
     tau_ghost = 2 * 50 / c; % Static Ghost at 50m
     
-    % Create Beat Signal with Noise
     tx = cos(2*pi*(fc*t + 0.5*slope*t.^2));
     rx = cos(2*pi*(fc*(t-tau) + 0.5*slope*(t-tau).^2)) + ...
          cos(2*pi*(fc*(t-tau_ghost) + 0.5*slope*(t-tau_ghost).^2)) + ...
-         0.5*randn(size(t)); % Added Noise
+         0.1*randn(size(t)); 
     
     beat = tx .* rx;
     
-    % Step 3: Peak Detection (Digital Signal Processing)
+    % 3c. DSP: FFT & Peak Detection
     L = length(beat);
     Y = fft(beat);
     P2 = abs(Y/L);
     P1 = P2(1:L/2+1);
     f = fs*(0:(L/2))/L;
     
-    % Find detections
-    [~, locs] = findpeaks(P1, f, 'MinPeakHeight', 0.05);
+    [pks, locs] = findpeaks(P1, f, 'MinPeakHeight', 0.05);
     detected_ranges = (locs * c * t_sweep) / (2 * bw);
     
-    % Gating Logic: Pick the detection closest to last estimate
+    % 3d. SMART GATING LOGIC (Fixes the Zero-Drop)
     if ~isempty(detected_ranges)
-        [~, idx] = min(abs(detected_ranges - x_est(1)));
-        z = detected_ranges(idx);
+        % Association: Find detection closest to where the Kalman Filter predicted
+        [val, idx] = min(abs(detected_ranges - x_est(1)));
+        z_raw = detected_ranges(idx);
+        % Add synthetic jitter to demonstrate Kalman smoothing
+        z = z_raw + (randn * 1.2); 
     else
-        z = x_est(1); % Lost track, hold last pos
+        % If no peak found, use the last estimated position (Freeze track)
+        z = x_est(1);
     end
     measured_pos(k) = z;
 
-    % Step 4: Kalman Filter (State Estimation) 
-    % Predict
+    % 3e. Kalman Update
     x_pred = A * x_est;
     P_pred = A * P * A' + Q;
-    
-    % Update
     K = P_pred * H' / (H * P_pred * H' + R_cov);
     x_est = x_pred + K * (z - H * x_pred);
     P = (eye(2) - K * H) * P_pred;
     
     kalman_pos(k) = x_est(1);
-end
+    kalman_vel(k) = x_est(2);
 
-% 5. Final Results Visualization
-figure('Color', 'k', 'Name', 'Radar Tracker');
-plot(1:num_chirps, true_pos, 'g-', 'LineWidth', 2); hold on;
-plot(1:num_chirps, measured_pos, 'rx', 'MarkerSize', 8);
-plot(1:num_chirps, kalman_pos, 'b--', 'LineWidth', 2);
-title('Radar Target Tracking: Kalman Filter vs Noisy FFT');
-xlabel('Chirp Number'); ylabel('Distance (meters)');
-legend('True Path', 'Noisy FFT Measurement', 'Kalman Filter Track');
-grid on;
+    % 4. HIGH-CONTRAST PLOTTING
+    if mod(k, 5) == 0
+        % Subplot 1: Raw Signals
+        subplot(3,1,1);
+        plot(f/1e6, P1, 'Color', [0 0.8 1], 'LineWidth', 1); hold on;
+        stem(locs/1e6, pks, 'r', 'LineWidth', 1); hold off;
+        title(['SIGNAL DOMAIN: Chirp #', num2str(k)], 'Color', 'w');
+        ylabel('Amplitude', 'Color', 'w'); grid on;
+        set(gca, 'Color', [0.1 0.1 0.1], 'XColor', 'w', 'YColor', 'w');
+        xlim([0 80]); ylim([0 0.6]);
+
+        % Subplot 2: Range Tracking
+        subplot(3,1,2);
+        plot(1:k, true_pos(1:k), 'g', 'LineWidth', 2); hold on;
+        plot(1:k, measured_pos(1:k), 'rx', 'MarkerSize', 3); 
+        plot(1:k, kalman_pos(1:k), 'y--', 'LineWidth', 1.5); hold off;
+        title('SPATIAL DOMAIN: Range Tracking', 'Color', 'w');
+        ylabel('Range (m)', 'Color', 'w'); grid on;
+        set(gca, 'Color', [0.1 0.1 0.1], 'XColor', 'w', 'YColor', 'w');
+        legend({'True', 'Noisy Sensor', 'Kalman'}, 'TextColor', 'w', 'Location', 'northwest');
+
+        % Subplot 3: Velocity State
+        subplot(3,1,3);
+        plot(1:k, repmat(v1, 1, k), 'g', 'LineWidth', 1.5); hold on;
+        plot(1:k, kalman_vel(1:k), 'c', 'LineWidth', 1.5); hold off;
+        title('STATE ESTIMATION: Velocity Vector', 'Color', 'w');
+        xlabel('Chirp Number', 'Color', 'w'); ylabel('Vel (m/s)', 'Color', 'w'); grid on;
+        set(gca, 'Color', [0.1 0.1 0.1], 'XColor', 'w', 'YColor', 'w');
+        drawnow;
+    end
+end
